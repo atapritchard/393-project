@@ -124,8 +124,9 @@ def makeGraph(P):
                 adjList[i].append(j)
     return adjList
 
-sinks = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12]
-sources = [13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24]
+sinks = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+sources = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 23]
+vertices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
 
 # all paths from vertices 1-12 to 12-24
 def filter1(allPaths):
@@ -138,19 +139,33 @@ def filter1(allPaths):
     return newPaths
 
 # all paths of length (not weight) greater than k
-#didn't write this yet
 def filter2(allPaths, k):
-    return
+    newPaths = []
+    for paths in allPaths:
+        for path in paths:
+            p = path[0]
+            if (len(p) > k):
+                newPaths.append(path)
+    return newPaths
 
-def doDijkstra(G, sinks, sources):
+# if sinks and sources are empty, find paths longer than k
+def doDijkstra(G, sinks, sources, k):
     allPaths = []
-    for sink in sinks:
-        allPaths.append(dijkstra(G, sink))
-    return filter1(allPaths)
+    if len(sinks) != 0:
+        for sink in sinks:
+            allPaths.append(dijkstra(G, sink))
+        return filter1(allPaths)
+    else:
+        for v in vertices:
+            allPaths.append(dijkstra(G, v))
+        return filter2(allPaths, k)
 
 def main():
     p, w = read_network('sioux_falls.txt')
-    #print(doDijkstra(w, sinks, sources))
+    G = copy.deepcopy(w)
+    paths1 = doDijkstra(G, sinks, sources, 0)
+    paths2 = doDijkstra(G, [], [], 5)
+    #print(paths2)
 
 if __name__ == '__main__':
     main()
