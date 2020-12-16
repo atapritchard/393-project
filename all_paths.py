@@ -124,17 +124,13 @@ def makeGraph(P):
                 adjList[i].append(j)
     return adjList
 
-sinks = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
-sources = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 23]
-vertices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
-
 # all paths from vertices 1-12 to 12-24
-def filter1(allPaths):
+def filter1(allPaths, sinks):
     newPaths = []
     for paths in allPaths:
         for path in paths:
             end = path[0][-1]
-            if end in sources:
+            if end in sinks:
                 newPaths.append(path)
     return newPaths
 
@@ -149,23 +145,88 @@ def filter2(allPaths, k):
     return newPaths
 
 # if sinks and sources are empty, find paths longer than k
-def doDijkstra(G, sinks, sources, k):
+def doDijkstra(G, sources, sinks, vertices, k):
     allPaths = []
-    if len(sinks) != 0:
-        for sink in sinks:
-            allPaths.append(dijkstra(G, sink))
-        return filter1(allPaths)
+    if len(sources) != 0:
+        for source in sources:
+            allPaths.append(dijkstra(G, source))
+        return filter1(allPaths, sinks)
     else:
         for v in vertices:
             allPaths.append(dijkstra(G, v))
         return filter2(allPaths, k)
 
+# similar to doDijkstra but finds shortest paths that must contain a charging station
+# finds path from starting vertex to station and then station to ending vertex
+def dijkstraStations(G, stations, sources, sinks, k):
+    allPaths = []
+    for source in sources:
+        allPaths.append(dijkstra(G, source))
+    allPaths = filter1(allPaths, stations)
+    stationDict = dict()
+    for station in stations:
+        stationDict[station] = [[], []]
+    for path in allPaths:
+        end = path[0][-1]
+        if stationDict.get(end) != None:
+            stationDict[end][0].append(path)
+    newPaths = []
+    for station in stationDict:
+        newPaths.append(dijkstra(G, station))
+    newPaths = filter1(newPaths, sinks)
+    for path in newPaths:
+        start = path[0][0]
+        if stationDict.get(start) != None:
+            stationDict[start][1].append(path)
+    minPaths = dict()
+    for source in sources:
+        for sink in sinks:
+            minPaths[(source, sink)] = (100, [])
+    for station in stationDict:
+        paths = stationDict[station]
+        startPaths = paths[0]
+        print(startPaths)
+        print("\n")
+        endPaths = paths[1]
+        print(endPaths)
+        print("\n")
+        for path in startPaths:
+            l = len(path[0])
+            start = path[0][0]
+            end = path[0][-1]
+            print(path)
+            for endPath in endPaths:
+                next = endPath[0][0]
+                if end == next:
+                    l2 = len(endPath[0])
+                    # length of path, total path
+                    newLen = l + l2
+                    newEnd = endPath[0][-1]
+                    prevLen = minPaths[(start, newEnd)][0]
+                    newPath = (path[0] + endPath[0], round(path[1] + endPath[1], 4))
+                    if newLen < prevLen:
+                        minPaths[(start, newEnd)] = (newLen, [newPath])
+                    elif newLen == prevLen:
+                        print("esdf")
+                        print(minPaths[(start, newEnd)])
+                        (minPaths[(start, newEnd)])[1].append(newPath)
+    finalPaths = []
+    for tup in minPaths:
+        path = minPaths[tup][1]
+        finalPaths += (path)
+    return(finalPaths)
+            
+
 def main():
     p, w = read_network('sioux_falls.txt')
     G = copy.deepcopy(w)
-    paths1 = doDijkstra(G, sinks, sources, 0)
-    paths2 = doDijkstra(G, [], [], 5)
-    #print(paths2)
+    sources = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
+    sinks = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 23]
+    vertices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
+    stations = [5, 10]
+    paths1 = doDijkstra(G, sources, sinks, vertices, 0)
+    paths2 = doDijkstra(G, [], [], vertices, 5)
+    stationPaths = dijkstraStations(G, stations, sources, sinks, 0)
 
 if __name__ == '__main__':
     main()
