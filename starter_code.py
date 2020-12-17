@@ -9,7 +9,8 @@ import os
 import numpy as np
 from tqdm import tqdm
 from pdb import set_trace as debug
-
+import matplotlib.pyplot as plt
+import seaborn as sns
 
 def read_network(filename):
     with open(filename, 'r') as doc:
@@ -103,6 +104,32 @@ def generate_random_routes(p, num_routes, route_min_len, route_max_len):
         paths.append(random_route(int(start_vtxs[i]), int(num_steps[i]), p))
     return paths
 
+
+def estProbs(routes, nodes):
+    """
+
+    Given a set of routes, estimate the turning probabilities associated with the network.
+    Can be used to find the estimated stationary distribution of the network.
+    """
+    
+    probs = np.zeros((nodes, nodes))
+    for route in routes:
+        for i in range(len(route) - 1):
+            probs[route[i] - 1, route[i + 1] - 1] += 1
+
+    # normalize rows
+    row_sums = probs.sum(axis = 1)
+    probs /= row_sums[:, None] 
+    print(probs)
+
+    return probs
+
+# Creates plot of stationary distribution
+def print_stationary(data):
+    plot = sns.barplot(x = np.arange(1, len(data[0])+ 1), y = data[0])
+    plot.set(xlabel = "Node", ylabel = "Probability", title = "Stationary Distribution")
+    
+    plt.show()
 
 # Sample program: read in sioux_falls network, generate 100,000 random paths, see which vertices have the most visits
 def main():
