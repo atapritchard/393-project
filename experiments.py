@@ -1,19 +1,16 @@
+import csv
+import copy
 import numpy as np
 from tqdm import tqdm
-import math
-from collections import defaultdict
-import copy
-from pdb import set_trace as debug
-from starter_code import *
 from all_paths import *
-import csv
+from starter_code import *
 
 
 # Measure impact of adding charging stations at specified vtxs - stationary dist metric
 def prob_measure(base_transition_matrix, stations, sources, sinks):
     # Ideal traffic flow should distribute traffic evenly across roads
     # In this way one way to rank traffic flows is to rank by max flow through any edge - smallest max is best flow
-    new_transition_matrix = add_stations(base_transition_matrix, stations, alpha=1.25)
+    new_transition_matrix = add_stations(base_transition_matrix, stations, alpha=1.5)
     base_pcts = path_experiment(base_transition_matrix, sources=sources, sinks=sinks, verbose=False)
     new_pcts = path_experiment(new_transition_matrix, sources=sources, sinks=sinks, verbose=False)
     e1, e2, e3 = np.sum(base_pcts[:, 1] - new_pcts[:, 1])**2, max(base_pcts[:, 1]), max(new_pcts[:, 1])
@@ -88,15 +85,6 @@ def main():
 
             dataset.append([sources, sinks, stations, station_key, path_len, path_weight, l2_diff, max_base_traffic,
                             max_new_traffic])
-
-            sources1 = list(map(lambda x: x+1, sources))
-            sinks1 = list(map(lambda x: x + 1, sinks))
-            stations1 = list(map(lambda x: x + 1, stations))
-            # print('Sources:', sources1)
-            # print('Sinks:', sinks1)
-            # print('Placement:', station_key)
-            # print('Stations', stations1)
-            # print('\n')
 
     with open('results.csv', 'w', newline='') as file:
         csv.writer(file, delimiter=',').writerows(dataset)

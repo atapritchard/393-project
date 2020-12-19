@@ -11,6 +11,7 @@ from tqdm import tqdm
 from pdb import set_trace as debug
 
 
+# Reads in transition matrix and weights from text file
 def read_network(filename):
     with open(filename, 'r') as doc:
         data = doc.read().strip().split('\n')
@@ -116,8 +117,8 @@ def generate_random_routes(p, num_routes, route_min_len, route_max_len, sources=
     return paths
 
 
+# Adds a charging station to the network, altering the transition probabilities
 def add_station(p, vtx_idx, alpha=1.25):
-    # vtx_idx = vtx - 1
     for i in range(p.shape[0]):
         edge_prob = p[i][vtx_idx]
         if edge_prob < 10e-5:
@@ -140,12 +141,14 @@ def add_station(p, vtx_idx, alpha=1.25):
     return p
 
 
+# Adds multiple stations to a network, returning the updated transition matrix
 def add_stations(p, vtxs, alpha=1.25):
     for v in vtxs:
         p = add_station(p, v, alpha=alpha)
     return p
 
 
+# Prints a transition matrix
 def display(transition_matrix):
     print('', ''.join(list(map(lambda x: str(x) + '  ', list(range(transition_matrix.shape[0]))))))
     for i in range(transition_matrix.shape[0]):
@@ -153,6 +156,7 @@ def display(transition_matrix):
         print(i+1, ' '.join(list(map(str, row.tolist()))))
 
 
+# Runs random path walking experiment on network for given sources and sinks
 def path_experiment(p_mat, sources=None, sinks=None, verbose=False):
     counts = {}
     for i in range(p_mat.shape[0]):
@@ -179,6 +183,7 @@ def path_experiment(p_mat, sources=None, sinks=None, verbose=False):
         return np.array(pcts)
 
 
+# Computes L-p norm of a vector
 def norm(vec, p=2):
     if p == 2:
         return np.sum(vec**2)
@@ -190,7 +195,8 @@ def norm(vec, p=2):
         raise NotImplemented
 
 
-# Sample program: read in sioux_falls network, generate 100,000 random paths, see which vertices have the most visits
+# Sample program: read in sioux_falls network, compute stationary distributions before and after adding charging
+# stations, as well as running path experiments and comparing results to before and after station additions
 def main():
     p, w = read_network('sioux_falls.txt')
     pi0 = stationary_dist(p, verbose=False)
