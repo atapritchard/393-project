@@ -29,7 +29,7 @@ def path_measure(G, stations, sources, sinks):
 def pickn(n, n_max):
     nums = set()
     while len(nums) < n:
-        nums.add(int(np.random.uniform(0, n)))
+        nums.add(int(np.random.uniform(0, n_max)))
     return nums
 
 
