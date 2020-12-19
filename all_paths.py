@@ -92,7 +92,7 @@ def storeSolution(dist, parent):
         paths.append((revPath, round(dist[i], 4)))
     return paths
 
-#half stolen from https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/
+# General algorithm from: https://www.geeksforgeeks.org/dijkstras-shortest-path-algorithm-greedy-algo-7/
 def dijkstra(G, start): 
     rows = len(G) 
     cols = len(G[0]) 
