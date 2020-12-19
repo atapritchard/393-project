@@ -163,43 +163,57 @@ def dijkstraStations(G, stations, sources, sinks, k):
     for source in sources:
         allPaths.append(dijkstra(G, source))
     allPaths = filter1(allPaths, stations)
+    # create dictionary of charging stations
     stationDict = dict()
+    
+    # Set each entry in the station dictionary to be two empty lists
     for station in stations:
         stationDict[station] = [[], []]
+
+    # For each path, if the path ends at the end of the path, add the path to 
+    # the list of  paths in the station dictionary.
     for path in allPaths:
         end = path[0][-1]
         if stationDict.get(end) != None:
             stationDict[end][0].append(path)
     newPaths = []
+
+    # For each path from a starting node ot a station, find all shortest path
+    # to any node in the sinks.
+
     for station in stationDict:
         newPaths.append(dijkstra(G, station))
     newPaths = filter1(newPaths, sinks)
+
+    # For any paths, sort them by which station they go through.
     for path in newPaths:
         start = path[0][0]
         if stationDict.get(start) != None:
             stationDict[start][1].append(path)
     minPaths = dict()
+
+    # Find the min path from every source to every sink that goes through a charging station.
+    # Starting number is set at 100 since it is longer than any feasible path.
     for source in sources:
         for sink in sinks:
             minPaths[(source, sink)] = (100, [])
+
+    # For each possible path, make sure it is valid (goes through a charging station)
+    # and also only store the min length path between two verttices that passes through
+    # a charging station.
     for station in stationDict:
         paths = stationDict[station]
         startPaths = paths[0]
-        print(startPaths)
-        print("\n")
         endPaths = paths[1]
-        print(endPaths)
-        print("\n")
         for path in startPaths:
             l = len(path[0])
             start = path[0][0]
             end = path[0][-1]
-            print(path)
             for endPath in endPaths:
                 next = endPath[0][0]
                 if end == next:
                     l2 = len(endPath[0])
-                    # length of path, total path
+                    # Store length of path, total path in newLen and newPath.
                     newLen = l + l2
                     newEnd = endPath[0][-1]
                     prevLen = minPaths[(start, newEnd)][0]
@@ -220,10 +234,14 @@ def dijkstraStations(G, stations, sources, sinks, k):
 def main():
     p, w = read_network('sioux_falls.txt')
     G = copy.deepcopy(w)
+
+    # Set sink and sources vertices.
     sources = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11]
     sinks = [12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 23]
     vertices = [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23]
     stations = [5, 10]
+
+    # Find paths from several versions of Dijkstra's shortest path algorithm.
     paths1 = doDijkstra(G, sources, sinks, vertices, 0)
     paths2 = doDijkstra(G, [], [], vertices, 5)
     stationPaths = dijkstraStations(G, stations, sources, sinks, 0)
